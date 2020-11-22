@@ -22,7 +22,7 @@
 # Removes all previously built instances.
 docker rm $(docker ps -a -q)
 
-docker build -t javabox .
+docker build --build-arg http_proxy=http://proxy.ethz.ch:3128/ --build-arg https_proxy=http://proxy.ethz.ch:3128  -t javabox .
 
 echo ""
 echo "  ---- RUNNING ---- "

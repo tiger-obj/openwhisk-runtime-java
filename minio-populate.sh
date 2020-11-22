@@ -7,8 +7,8 @@ mkdir -p $datadir
 for i in {1..100}
 do
 	openssl rand 2097152 > $datadir/file-$i.dat
-	#openssl rand 1048576 > $datadir/file-$i.dat
-	#openssl rand 1024 > $datadir/file-$i.dat
+	#openssl rand 1048576 > datadir/file−i.dat
+	#openssl rand 1024 > datadir/file−i.dat
 done
 
 # for the video, image classification test, and thumbnail

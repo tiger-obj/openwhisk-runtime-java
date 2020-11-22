@@ -181,6 +181,9 @@ public class Proxy {
                         ((Loader)loader).delegateLoadingOf("org.apache.openwhisk.runtime.java.action.");
                         ((Loader)loader).delegateLoadingOf("org.xmlpull.");
                         ((Loader)loader).delegateLoadingOf("okhttp3.");
+                        //for logger impl not found due to apache httpclient
+                        ((Loader)loader).delegateLoadingOf("org.apache.http.");
+                        
 
                         // Add a translator to apply transformations to the loaded classes.
                         // TODO - there is a bug when loading minio!
@@ -207,6 +210,7 @@ public class Proxy {
 
     private class RunHandler implements HttpHandler {
         public void handle(HttpExchange t) throws IOException {
+        System.out.println("HandleRequest: "+System.nanoTime());
             if (loader == null) {
                 Proxy.writeError(t, "Cannot invoke an uninitialized action.");
                 return;
@@ -220,7 +224,7 @@ public class Proxy {
                 JsonParser parser = new JsonParser();
                 JsonObject body = parser.parse(new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))).getAsJsonObject();
                 JsonObject inputObject = body.getAsJsonObject("value");
-
+            System.out.println("ParseRequest: "+System.nanoTime());
                 HashMap<String, String> env = new HashMap<String, String>();
                 Set<Map.Entry<String, JsonElement>> entrySet = body.entrySet();
                 for(Map.Entry<String, JsonElement> entry : entrySet){
@@ -233,24 +237,25 @@ public class Proxy {
                 // We always give a new classloader for a new invocation. It is used as an identifier.
                 Thread.currentThread().setContextClassLoader(new Loader(loader, ClassPool.getDefault()));
                 System.setSecurityManager(new WhiskSecurityManager());
-
+            System.out.println("ArgsReady: "+System.nanoTime());
                 // Prepare environment.
                 augmentEnv(env);
-
+            System.out.println("EnvReady: "+System.nanoTime());
                 // TODO - make this call lazy.
                 translator.callStaticInitialisers(loader);
-
+            System.out.println("StaticInitialized: "+System.nanoTime());
                 globals.put("time", new Date().getTime());
-
+            System.out.println("LaunchJob: "+System.nanoTime());
                 // User code starts running here.
                 JsonObject output = (JsonObject) main.invoke(null, inputObject, globals, Thread.currentThread().getContextClassLoader().hashCode());
                 // User code finished running here.
-
+            System.out.println("JobDone: "+System.nanoTime());
                 if (output == null) {
                     throw new NullPointerException("The action returned null");
                 }
 
                 Proxy.writeResponse(t, 200, output.toString());
+            System.out.println("Response: "+System.nanoTime());
                 return;
             } catch (InvocationTargetException ite) {
                 // These are exceptions from the action, wrapped in ite because
@@ -263,6 +268,7 @@ public class Proxy {
                 e.printStackTrace(System.err);
                 Proxy.writeError(t, "An error has occurred (see logs for details): " + e);
             } finally {
+                System.out.println("AfterJob: "+System.nanoTime());
                 writeLogMarkers();
                 System.setSecurityManager(sm);
                 Thread.currentThread().setContextClassLoader(cl);

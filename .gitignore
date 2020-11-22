@@ -34,6 +34,9 @@ results
 !/ansible/environments/local
 !/ansible/environments/mac
 
+#vscode 
+.vscode
+
 # Eclipse
 bin/
 **/.project

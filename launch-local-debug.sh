@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+export JAVA_HOME=/home/sutwang/software/graalvm-ce-java8-20.2.0
 
 debug="-agentlib:jdwp=transport=dt_socket,address=8000,server=y,suspend=y"
 

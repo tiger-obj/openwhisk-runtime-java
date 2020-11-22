@@ -1,3 +1,3 @@
 #!/bin/bash
 
-../../tools/invoke.py run '{"time":"0"}'
+python3 ../../tools/invoke.py run '{"time":"0"}'
