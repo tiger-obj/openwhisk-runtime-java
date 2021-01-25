@@ -1,3 +1,4 @@
 #!/bin/bash
-
-../../tools/invoke.py init ch.ethz.systems.InceptionImageClassifierDemo target/image-classifier.jar
+PROJECTPATH="/home/sutwang/Project/openwhisk-runtime-java"
+SUBFOLDERPATH="test-app/image-classification"
+python3 $PROJECTPATH/tools/invoke.py init ch.ethz.systems.InceptionImageClassifierDemo $PROJECTPATH/$SUBFOLDERPATH/target/image-classifier.jar

@@ -26,12 +26,11 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 
-
 public class MinioClientHttpDriver {
     private String accessKey;
     private String secretKey;
     private String storage;
-    private AWS4Signature signaturer;
+    
     private CloseableHttpClient client;
     MinioClientHttpDriver(String endpoint,String accessKey, String secretKey){
         this.accessKey = accessKey;
@@ -39,14 +38,14 @@ public class MinioClientHttpDriver {
         this.storage = endpoint.split("//")[1];
         // System.out.println("stringFields:"+System.nanoTime());
         this.client = HttpClients.createDefault();
-        signaturer = new AWS4Signature();
         // System.out.println("DefaultClient:"+System.nanoTime());
     }
 
     public InputStream getObject(String bucketName, String objectName) throws IOException {
         String canonicalUri = "/"+bucketName + "/"+objectName;
         try{
-            HttpUriRequest request = signaturer.getObjectHttpRequest(storage,canonicalUri,accessKey,secretKey);
+//            AWS4Signature signaturer = new AWS4Signature();
+            HttpUriRequest request = AWS4Signature.getObjectHttpRequest(storage,canonicalUri,accessKey,secretKey);
 
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode()!=200)
@@ -66,7 +65,8 @@ public class MinioClientHttpDriver {
         }
         String canonicalUri = "/"+bucketName + "/"+objectName;
         try{
-            HttpUriRequest request = signaturer.putObjectHttpRequest(storage,canonicalUri,accessKey,secretKey,size,contentType,stream);
+//            AWS4Signature signaturer = new AWS4Signature();
+            HttpUriRequest request = AWS4Signature.putObjectHttpRequest(storage,canonicalUri,accessKey,secretKey,size,contentType,stream);
 
             HttpResponse response = client.execute(request);
             if(response.getStatusLine().getStatusCode()!=200)
@@ -86,30 +86,37 @@ public class MinioClientHttpDriver {
 //AWS-HMAC-SHA256
 class AWS4Signature{
     private static final String HMAC_SHA256 = "HmacSHA256";
-    private Mac sha256Hmac  = null;
+    private static Mac sha256Hmac  = null;
     private static final String service = "s3";
     private static final String region = "us-east-1";
-    private MessageDigest digest = null;
+    private static MessageDigest digest = null;
     private static final int CHUNK_SIGNATURE_METADATA_LEN = 85;
     // As final additional chunk must be like
     // 0;chunk-signature=b6c6ea8a5354eaf15b3cb7646744f4275b71ea724fed81ceb9323e279d449df9\r\n\r\n
     // the length is 86
     private static final int FINAL_ADDITIONAL_CHUNK_LEN = 1 + CHUNK_SIGNATURE_METADATA_LEN;
-
-    private byte[] sign(byte[] key, byte[] msg) {
+    static{
         try {
-            if(sha256Hmac==null)
-                sha256Hmac = Mac.getInstance(HMAC_SHA256);
+            sha256Hmac = Mac.getInstance(HMAC_SHA256);
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+    }
+    private static byte[] sign(byte[] key, byte[] msg) {
+        try {
+//            if(sha256Hmac==null)
+//                sha256Hmac = Mac.getInstance(HMAC_SHA256);
             SecretKeySpec keySpec = new SecretKeySpec(key, HMAC_SHA256);
             sha256Hmac.init(keySpec);
             byte[] macData = sha256Hmac.doFinal(msg);
             return macData;
-        } catch (InvalidKeyException | NoSuchAlgorithmException e) {
+        } catch (InvalidKeyException e) {
             e.printStackTrace();
         } finally {}
         return new byte[0];
     }
-    private byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName){
+    private static byte[] getSignatureKey(String key, String dateStamp, String regionName, String serviceName){
         byte[] kDate = sign(("AWS4" + key).getBytes(StandardCharsets.UTF_8), dateStamp.getBytes(StandardCharsets.UTF_8));
         byte[] kRegion = sign(kDate, regionName.getBytes(StandardCharsets.UTF_8));
         byte[] kService = sign(kRegion, serviceName.getBytes(StandardCharsets.UTF_8));
@@ -120,18 +127,19 @@ class AWS4Signature{
     private static String byteArrToHex(byte[] input){
         return Hex.encodeHexString(input);
     }
-    private String hashHex(String msg){
-        if(digest==null){
-            try {
-                digest = MessageDigest.getInstance("SHA-256");
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-        }
+    private static String hashHex(String msg){
+//
+//        if(digest==null){
+//            try {
+//                digest = MessageDigest.getInstance("SHA-256");
+//            } catch (NoSuchAlgorithmException e) {
+//                e.printStackTrace();
+//            }
+//        }
         byte[] encodedHash = digest.digest(msg.getBytes(StandardCharsets.UTF_8));
         return byteArrToHex(encodedHash);
     }
-    HttpUriRequest getObjectHttpRequest(String host,String canonicalUri,String accessKey, String secretKey) throws URISyntaxException {
+    static HttpUriRequest getObjectHttpRequest(String host,String canonicalUri,String accessKey, String secretKey) throws URISyntaxException {
         //get time in different format
         String amzdate;
         String dateStamp;
@@ -169,7 +177,7 @@ class AWS4Signature{
                 .build();
         return request;
     }
-    HttpUriRequest putObjectHttpRequest(String host,String canonicalUri,String accessKey, String secretKey, int size,String contentType,InputStream stream) throws URISyntaxException, IOException {
+    static HttpUriRequest putObjectHttpRequest(String host,String canonicalUri,String accessKey, String secretKey, int size,String contentType,InputStream stream) throws URISyntaxException, IOException {
         //get time in different format
         String amzdate;
         String dateStamp;

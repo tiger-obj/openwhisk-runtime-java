@@ -1,3 +1,4 @@
 #!/bin/bash
-
-python3 ../../tools/invoke.py init ch.ethz.systems.Sleep target/sleep.jar
+PROJECTPATH="/home/sutwang/Project/openwhisk-runtime-java"
+SUBFOLDERPATH="test-app/sleep"
+python3 $PROJECTPATH/tools/invoke.py init ch.ethz.systems.Sleep $PROJECTPATH/$SUBFOLDERPATH/target/sleep.jar

@@ -219,15 +219,25 @@ public class SimpleTranslator implements Translator {
 	}
 
 	public void callStaticInitialisers(ClassLoader cl) throws ClassNotFoundException, NoSuchMethodException, SecurityException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        long start= System.nanoTime();
+        // System.out.println(classesForStaticInitialization);
 		for (String classname : new HashSet<String>(classesForStaticInitialization)) {
+            long st= System.nanoTime();
 			Class<?> clazz = Class.forName(classname, false, cl);
 			if (debug) {
 				System.err.println("Calling " + clazz.getMethod("__static_init", new Class[] {}));	
 			}
+            long getC= System.nanoTime();
+            // System.out.println("getClass take: "+(getC-st)/1e6);
 			Method m = clazz.getMethod("__static_init", new Class[] {});
+            long getM= System.nanoTime();
+            // System.out.println("getMethod take: "+(getM-getC)/1e6);
 			m.setAccessible(true);
 			m.invoke(null, new Object[] {});
+            long inv= System.nanoTime();
+            // System.out.println("invoke take: "+(inv-getM)/1e6);
 		}
+        // System.out.println("callStaticInitialisers take: "+(System.nanoTime()-start)/1e6);
 	}
 
 }

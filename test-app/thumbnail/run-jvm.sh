@@ -1,3 +1,4 @@
 #!/bin/bash
-
-../../tools/invoke.py run '{"seed":"1"}'
+PROJECTPATH="/home/sutwang/Project/openwhisk-runtime-java"
+SUBFOLDERPATH="test-app/thumbnail"
+python3 $PROJECTPATH/tools/invoke.py run '{"seed":"1"}'
