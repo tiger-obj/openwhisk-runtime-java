@@ -183,10 +183,11 @@ public class Proxy {
                         ((Loader)loader).delegateLoadingOf("org.xmlpull.");
                         ((Loader)loader).delegateLoadingOf("okhttp3.");
                         //for logger impl not found due to apache httpclient
-                        // ((Loader)loader).delegateLoadingOf("org.apache.http.");
                         ((Loader)loader).delegateLoadingOf("org.apache.http.");
+                        // ((Loader)loader).delegateLoadingOf("org.apache.http.");
+                        ((Loader)loader).delegateLoadingOf("com.mongodb.");
                         //java 11 bug
-                        ((Loader)loader).delegateLoadingOf("jdk.internal.reflect.");
+                        // ((Loader)loader).delegateLoadingOf("jdk.internal.reflect.");
                         // ((Loader)loader).delegateLoadingOf("javax.xml.bind");
                         
                         

@@ -4,30 +4,27 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.*;
 
 import com.google.gson.JsonObject;
 
 import ch.ethz.systems.images.models.inception.InceptionImageClassifier;
 import ch.ethz.systems.images.utils.ResourceUtils;
-import io.minio.MinioClient;
 
 public class InceptionImageClassifierDemo {
-
+    // private static final String storage = "http://127.0.0.1:9000";
+    private static final String storage = "http://172.18.0.2:9000";
     public static InceptionImageClassifier classifier = null;
-    public static MinioClient minioClient = null;
+    public static MinioClientHttpDriver driver = null;
 
     public static void init_classifier() {
         classifier = new InceptionImageClassifier();
         try {
             // cls.load_model(ResourceUtils.getInputStream("tf_models/tensorflow_inception_graph.pb"));
-            minioClient = new MinioClient("http://r630-01:9000", "keykey", "secretsecret");
-            InputStream is = minioClient.getObject("files", "tensorflow_inception_graph.pb");
+            driver = new MinioClientHttpDriver(storage,"keykey","secretsecret");
+            InputStream is = driver.getObject("files", "tensorflow_inception_graph.pb");
             classifier.load_model(is);
-            is = minioClient.getObject("files", "imagenet_comp_graph_label_strings.txt");
+            is = driver.getObject("files", "imagenet_comp_graph_label_strings.txt");
             classifier.load_labels(is);
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,13 +40,11 @@ public class InceptionImageClassifierDemo {
         String file_name = image_names[index];
         String image_path = file_name + ".jpg";
         BufferedImage img = null;
-
         try {
-            img = ResourceUtils.getImage(minioClient.getObject("files", image_path));
+            img = ResourceUtils.getImage(driver.getObject("files", image_path));
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         String predicted_label = classifier.predict_image(img);
 
         JsonObject response = new JsonObject();
@@ -98,20 +93,21 @@ public class InceptionImageClassifierDemo {
     }
 
     public static JsonObject main(JsonObject args, Map<String, Object> globals, int id) {
+        long start = System.currentTimeMillis();
         boolean slow_start = true;
         synchronized (globals) {
             if (!globals.containsKey("classifier")) {
                 init_classifier();
                 globals.put("classifier", classifier);
-                globals.put("minio", minioClient);
+                globals.put("minio", driver);
             } else {
                 classifier = (InceptionImageClassifier) globals.get("classifier");
-                minioClient = (MinioClient) globals.get("minio");
+                driver = (MinioClientHttpDriver) globals.get("minio");
                 slow_start = false;
             }
         }
-
         JsonObject response = predict(args.getAsJsonPrimitive("index").getAsInt());
+        response.addProperty("response time", System.currentTimeMillis()-start);
         response.addProperty("slow_start", slow_start);
         return response;
     }
