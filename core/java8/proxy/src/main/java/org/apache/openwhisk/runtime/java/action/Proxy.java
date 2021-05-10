@@ -187,7 +187,7 @@ public class Proxy {
                         // ((Loader)loader).delegateLoadingOf("org.apache.http.");
                         ((Loader)loader).delegateLoadingOf("com.mongodb.");
                         //java 11 bug
-                        // ((Loader)loader).delegateLoadingOf("jdk.internal.reflect.");
+                        ((Loader)loader).delegateLoadingOf("jdk.internal.reflect.");
                         // ((Loader)loader).delegateLoadingOf("javax.xml.bind");
                         
                         
@@ -297,5 +297,6 @@ public class Proxy {
     public static void main(String args[]) throws Exception {
         Proxy proxy = new Proxy(8080);
         proxy.start();
+        System.out.println("Service Ready");
     }
 }

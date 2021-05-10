@@ -44,6 +44,9 @@ public class InceptionImageClassifierDemo {
             img = ResourceUtils.getImage(driver.getObject("files", image_path));
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            if(img!=null)
+                img.flush();
         }
         String predicted_label = classifier.predict_image(img);
 
@@ -93,7 +96,7 @@ public class InceptionImageClassifierDemo {
     }
 
     public static JsonObject main(JsonObject args, Map<String, Object> globals, int id) {
-        long start = System.currentTimeMillis();
+        long start = System.nanoTime();
         boolean slow_start = true;
         synchronized (globals) {
             if (!globals.containsKey("classifier")) {
@@ -107,7 +110,7 @@ public class InceptionImageClassifierDemo {
             }
         }
         JsonObject response = predict(args.getAsJsonPrimitive("index").getAsInt());
-        response.addProperty("response time", System.currentTimeMillis()-start);
+        response.addProperty("time", System.nanoTime()-start);
         response.addProperty("slow_start", slow_start);
         return response;
     }

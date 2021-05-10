@@ -25,13 +25,13 @@ public class MemAllocator {
     public static JsonObject main(JsonObject args, Map<String, Object> globals, int id) {
     	ConcurrentHashMap<String, Object> cglobals = (ConcurrentHashMap<String, Object>) globals;
     	String hash = null;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
         if (args.has("size")) {
             hash = run(args.getAsJsonPrimitive("size").getAsInt(),id);
         }
         JsonObject response = new JsonObject();
         response.addProperty("hash", hash != null ? hash : "Fail to get hash, check server log.");
-        response.addProperty("time", System.currentTimeMillis() - time);
+        response.addProperty("time", System.nanoTime() - time);
         return response;
     }
 }

@@ -72,7 +72,7 @@ public class FileHashing {
         // System\.out\.println("FHStart: "+System.nanoTime());
         ConcurrentHashMap<String, Object> cglobals = (ConcurrentHashMap<String, Object>) globals;
         String hash = null;
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
     
         if (args.has("seed")) {
             hash = run(getConn(cglobals), args.getAsJsonPrimitive("seed").getAsInt(), getBuffer(cglobals));
@@ -80,7 +80,7 @@ public class FileHashing {
     
         JsonObject response = new JsonObject();
         response.addProperty("hash", hash!=null?hash:"Fail to get hash, check server log.");
-        response.addProperty("time", System.currentTimeMillis() - time);
+        response.addProperty("time", System.nanoTime() - time);
         // System\.out\.println("FHDone: "+System.nanoTime());
         return response;
     }

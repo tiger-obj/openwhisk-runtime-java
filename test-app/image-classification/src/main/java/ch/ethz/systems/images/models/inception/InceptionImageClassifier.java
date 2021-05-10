@@ -1,13 +1,12 @@
 package ch.ethz.systems.images.models.inception;
 
-import org.tensorflow.Graph;
-import org.tensorflow.Session;
-import org.tensorflow.Tensor;
-
 import ch.ethz.systems.images.utils.ImageUtils;
 import ch.ethz.systems.images.utils.InputStreamUtils;
 import ch.ethz.systems.images.utils.ResourceUtils;
 import ch.ethz.systems.images.utils.TensorUtils;
+import org.tensorflow.Graph;
+import org.tensorflow.Session;
+import org.tensorflow.Tensor;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
@@ -74,6 +73,7 @@ public class InceptionImageClassifier implements AutoCloseable {
             }
             int nlabels = (int) rshape[1];
             float[] predicted = result.copyTo(new float[1][nlabels])[0];
+            result.close();
             int argmax = 0;
             float max = predicted[0];
             for(int i=1; i < nlabels; ++i) {
@@ -90,6 +90,8 @@ public class InceptionImageClassifier implements AutoCloseable {
             }
         } catch(Exception ex) {
 
+        } finally {
+            imageTensor.close();
         }
 
         return "unknown";

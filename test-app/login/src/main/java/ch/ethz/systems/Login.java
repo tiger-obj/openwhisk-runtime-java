@@ -48,7 +48,7 @@ public class Login {
     public static JsonObject main(JsonObject args, Map<String, Object> globals, int id) {
     	ConcurrentHashMap<String, Object> cglobals = (ConcurrentHashMap<String, Object>) globals;
     	JsonObject response = new JsonObject();
-        long time = System.currentTimeMillis();
+        long time = System.nanoTime();
 
         if (login(cglobals, args.getAsJsonPrimitive("username").getAsString(), args.getAsJsonPrimitive("password").getAsString())) {
         	response.addProperty("succeeded", "true");
@@ -56,7 +56,7 @@ public class Login {
         	response.addProperty("succeeded", "false");
         }
             	
-    	response.addProperty("time", System.currentTimeMillis() - time);
+    	response.addProperty("time", System.nanoTime() - time);
     	return response;
     }
     
